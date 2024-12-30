@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/bottom_menu_navigation"
+    app:startDestination="@id/navigation_pokedex"
+    >
+
+    <fragment
+        android:id="@+id/navigation_pokemons"
+        android:name="martinezruiz.javier.pmdm003.ui.pokemons.PokemonsFragment"
+        android:label="@string/menu_bottom_pokemons"
+        tools:layout="@layout/fragment_pokemons"
+        >
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_pokedex"
+        android:name="martinezruiz.javier.pmdm003.ui.pokedex.PokedexFragment"
+        android:label="@string/menu_bottom_pokedex"
+        tools:layout="@layout/fragment_pokedex"
+        >
+        <action
+            android:id="@+id/action_navigation_pokedex_to_navigation_pokemons"
+            app:destination="@id/navigation_pokemons"
+            app:popUpTo="@id/navigation_pokedex"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="martinezruiz.javier.pmdm003.ui.settings.SettingsFragment"
+        android:label="@string/menu_bottom_settings"
+        tools:layout="@layout/fragment_settings"
+        />
+
+
+</navigation>

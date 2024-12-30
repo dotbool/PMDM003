@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">PMDM003</string>
+    <string name="menu_bottom_pokemons">Mis pokemons</string>
+    <string name="menu_bottom_pokedex">Pokedex</string>
+    <string name="menu_bottom_settings">Settings</string>
+
+
+    <string name="switch_borrado">"Permitir borrar?</string>
+    <string name="Settings">Ajustes</string>
+    <string name="language">Idioma</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="Spanish">Español</string>
+    <string name="English">Inglés</string>
+    <string name="acerca_de">Acerca de:</string>
+    <string name="sesion_cerrada">Sesión cerrada:</string>
+    <string name="capturar">Capturar</string>
+</resources>
