@@ -14,4 +14,5 @@
     <string name="acerca_de">Acerca de:</string>
     <string name="sesion_cerrada">Sesión cerrada:</string>
     <string name="capturar">Capturar</string>
+    <string name="preference_file_capture">capturados</string>
 </resources>

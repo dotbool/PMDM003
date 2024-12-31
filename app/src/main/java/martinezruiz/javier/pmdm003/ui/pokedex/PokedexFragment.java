@@ -16,15 +16,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
 
 import martinezruiz.javier.pmdm003.R;
+import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.databinding.FragmentPokedexBinding;
 import martinezruiz.javier.pmdm003.models.Pokemon;
 
 /**
  *
  */
-public class PokedexFragment extends Fragment implements ClickListener{
+public class PokedexFragment extends Fragment implements ClickListener {
 
 
     public PokedexFragment() {
@@ -35,12 +38,10 @@ public class PokedexFragment extends Fragment implements ClickListener{
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
-
+        spService = new SharedPreferenceService(requireContext());
+        pokedexViewModel.setCapturadosSp(spService.iniciarCapturados());
 
     }
-
-
-
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -54,23 +55,33 @@ public class PokedexFragment extends Fragment implements ClickListener{
         recycler.setAdapter(adapter);
 
 
-
         //The first method where it is safe to access the view lifecycle is onCreateView
         //Aunque google dice también onCreate pero salta la exception
 
         pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
-            if(adapter.getItemCount() == 0){
+            if (adapter.getItemCount() == 0) {
+                System.out.println(pokemons.hashCode());
+                if (spService == null) {
+                    spService = new SharedPreferenceService(requireContext());
+                }
+                spService.leerCapturados(pokemons);
                 this.pokemons.clear();
                 this.pokemons.addAll(pokemons);
+                spService = null;
 
-            }
-            else{
+            } else {
                 this.pokemons = (ArrayList<Pokemon>) pokemons;
+                if (spService == null) {
+                    spService = new SharedPreferenceService(requireContext());
+                }
+                this.pokemons.stream()
+                        .filter(p -> p.getState().equals(Pokemon.State.CAPTURED))
+                        .forEach(p -> spService.escribirCapturado(p.getNombre(),
+                                Pokemon.State.CAPTURED.name()));
+                spService = null;
             }
             adapter.notifyDataSetChanged();
         });
-
-
 
         setCaptureBtnUI(); //Adaptamos al btn de captura para que se ajuste a la pantalla
 
@@ -94,7 +105,7 @@ public class PokedexFragment extends Fragment implements ClickListener{
      * padding para el botón de capture. Cómo cada móvil tiene unas dimensiones así me aseguro de
      * que la proporción será correcta
      */
-    private void setCaptureBtnUI(){
+    private void setCaptureBtnUI() {
 
         BottomNavigationView navigation =
                 requireActivity().findViewById(R.id.nav_view_bottom);
@@ -104,7 +115,7 @@ public class PokedexFragment extends Fragment implements ClickListener{
                 int height = (int) navigation.getMeasuredHeight();
                 View v = binding.btnCapture;
                 ViewGroup.MarginLayoutParams btnBottomMargin = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
-                btnBottomMargin.bottomMargin=height;
+                btnBottomMargin.bottomMargin = height;
                 v.setLayoutParams(btnBottomMargin);
 
             }
@@ -114,11 +125,12 @@ public class PokedexFragment extends Fragment implements ClickListener{
     /**
      * Este listener se envía al Adapter cuando es construido para que nos avise de que pokemon ha
      * sido pulsado
+     *
      * @param pokemon
      */
     @Override
     public void onClick(Pokemon pokemon) {
-        Pokemon.State state = pokemon.getState() == Pokemon.State.WANTED ? Pokemon.State.FREE: Pokemon.State.WANTED;
+        Pokemon.State state = pokemon.getState() == Pokemon.State.WANTED ? Pokemon.State.FREE : Pokemon.State.WANTED;
         pokemon.setState(state);
     }
 
@@ -128,6 +140,8 @@ public class PokedexFragment extends Fragment implements ClickListener{
     private String TAG = getClass().getName();
     PokedexAdapter adapter;
     RecyclerView recycler;
+
+    SharedPreferenceService spService;
 
 
 }

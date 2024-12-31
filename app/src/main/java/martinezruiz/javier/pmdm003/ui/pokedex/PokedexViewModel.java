@@ -1,24 +1,25 @@
 package martinezruiz.javier.pmdm003.ui.pokedex;
 
 
-import android.util.Log;
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.viewmodel.ViewModelInitializer;
 
-import com.google.firebase.firestore.FirebaseFirestore;
-
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.models.Pokemon;
 import martinezruiz.javier.pmdm003.models.PokemonList;
+import martinezruiz.javier.pmdm003.repository.FireRepository;
+import martinezruiz.javier.pmdm003.repository.FireRepositoryImp;
+import martinezruiz.javier.pmdm003.repository.PokeRepositoryImp;
 import martinezruiz.javier.pmdm003.repository.PokeRepository;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 
 /**
@@ -37,43 +38,11 @@ public class PokedexViewModel extends ViewModel {
 
     public PokedexViewModel() {
         pokemonList = new MutableLiveData<>();
-        repo = new PokeRepository();
-
-        if(!pokemonList.isInitialized()){
-            repo.getPokemonList(0, 150, new Callback<PokemonList>() {
-                @Override
-                public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
-                    if(response.isSuccessful()){
-                        if(response.body()!=null) {
-                            pokemonList.postValue(response.body().getPokemonList());
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<PokemonList> call, Throwable throwable) {
-                    System.out.println(throwable.getMessage());
-                }
-            });
-        }
-//        Pokemon p = new Pokemon();
-//        p.setNombre("juan");
-//        p.setPeso(2);
-//        p.setIndice(2);
-//        p.setAltura(222);
-//        repoFire.addPokemon(p);
+        repo = new PokeRepositoryImp();
 
 
     }
 
-
-    public LiveData<List<Pokemon>> getPokemons(){
-        return pokemonList;
-    }
-    private MutableLiveData<List<Pokemon>> pokemonList;
-    private PokeRepository repo;
-
-    FirebaseFirestore fs = FirebaseFirestore.getInstance();
 
 
 
@@ -82,50 +51,91 @@ public class PokedexViewModel extends ViewModel {
      * 1. Obtenemos lo que haya en la lista de pokemons
      * 2. Iteramos por la lista seleccionando los que tengan el state WANTED (seleccionados)
      * 3. LLamamos a la API por cada uno de ellos
-     * 4. Recibimos un objeto pokemon pero no se ha reemplazado en la lista porque al hacerlo
-     * se modifica el objeto completo (la lista) y el adapter sigue apuntando a la lista original.
-     * Entonces al  llamar a Datachanged no se actualiza la vista
+     * 4. Recibimos un objeto pokemon. Utilizamos los valores del pokemon recibido para setear
+     * los valores del pokemon que hay en la lista observable que maneja el viewmodel. Si sustituyo
+     * un pokemon por otro, la referencia
+     * de la lista que los contiene cambia pero el adapter sigue apuntando a la lista original. Por eso
+     * se ha hecho así, para no cambiar la referencia de la lista a la que apunta el adapter.
+     * Si alguna de las request fallase, concatMap sólo afecta a las emisiones successful qye reciba,
+     * por lo que el que fallase no sería tratado y por lo tanto su estado no pasaría a CAPTURED.
+     * 5. Una vez el objeto pokemon esté seteado llamamos al repo de Firebase y hacemos el
+     * insert pasándole un callback que en este caso lo que hace es guardar pares de clave (nombre
+     * del pokemon) valor (estado del pokemon, por ejemplo 'bulbasaur: captured') en el sharedpreferences.
+     * Esto se hace para que cuando la app se ponga en marcha, se haga el fecth inicial a la pokeAPi,
+     * se intercepte esa request y se establezca el estado de lo que venga. De esta forma los pokemons
+     * capturados seguirán estando capturados
      */
-    protected void capture(){
-
+    protected void capture() {
 
         List<Pokemon> pokemons = getPokemons().getValue();
-        if(pokemons!=null){
-            for(Pokemon p: pokemons){
-                if(p.getState().equals(Pokemon.State.WANTED)){
-                    disposablePokemon = repo.getPokemon(p.getNombre())
+        if (pokemons != null) {
+            for (Pokemon p : pokemons) {
+                if (p.getState().equals(Pokemon.State.WANTED)) {
+                    disposablePokemon = repo.getPokemon(p)
+                            .concatMap(pokemon -> repoFire.insertPokemon(pokemon))
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
-                                    onNext -> {
-                                        p.setIndice(onNext.getIndice());
-                                        p.setImgUrl(onNext.getImgUrl());
-                                        p.setPeso(onNext.getPeso());
-                                        p.setAltura(onNext.getAltura());
-                                        p.setTypes(onNext.getTypes());
-                                        p.setState(Pokemon.State.CAPTURED);
+                                    next -> {
+                                        System.out.println("next: " + next);
                                     },
-                                    onError ->{
-                                        System.out.println(onError);
+                                    onError -> {
                                     },
-                                    ()->{
+                                    () -> {
                                         pokemonList.postValue(pokemons);
-                                        fs.collection("pokemon").document(p.getNombre())
-                                                .set(p)
-                                                .addOnSuccessListener(r->  Log.d(TAG, "DocumentSnapshot successfully written!"))
-                                                .addOnFailureListener(e-> Log.e(TAG, "Error", e));
+                                    });
 
-                                    }
-                            );
                 }
-
             }
-
         }
-
     }
 
-    private String TAG = getClass().getName();
+    public void setCapturadosSp(ArrayList<String> capturadosSp) {
+        this.capturadosSp = capturadosSp;
 
+        if (!pokemonList.isInitialized()) {
+            repo.getPokemonList(0, 150, new PokeRepository.PokeRepositoryListener() {
+                @Override
+                public void onSuccess(PokemonList list) {
+                    pokemonList.postValue(list.getPokemonList());
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    System.out.println(e);
+
+                }
+            });
+        }
+    }
+
+    public LiveData<List<Pokemon>> getPokemons(){
+        return pokemonList;
+    }
+    private MutableLiveData<List<Pokemon>> pokemonList;
+    private PokeRepositoryImp repo;
+    private String TAG = getClass().getName();
+    FireRepositoryImp repoFire = FireRepositoryImp.getInstance();
     Disposable disposablePokemon;
+    private ArrayList<String> capturadosSp;
 }
+
+
+//        if(!pokemonList.isInitialized()){
+//            repo.getPokemonList(0, 150, new Callback<PokemonList>() {
+//                @Override
+//                public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
+//                    if(response.isSuccessful()){
+//                        if(response.body()!=null) {
+//                            pokemonList.postValue(response.body().getPokemonList());
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Call<PokemonList> call, Throwable throwable) {
+//                    System.out.println(throwable.getMessage());
+//                }
+//            });
+//        }
+

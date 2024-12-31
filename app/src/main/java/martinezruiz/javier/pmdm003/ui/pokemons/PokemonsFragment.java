@@ -14,6 +14,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 
+import martinezruiz.javier.pmdm003.databinding.FragmentPokemonsBinding;
+import martinezruiz.javier.pmdm003.models.Pokemon;
 import martinezruiz.javier.pmdm003.ui.pokedex.PokedexViewModel;
 import martinezruiz.javier.pmdm003.R;
 import martinezruiz.javier.pmdm003.ui.pokedex.PokedexViewModel;
@@ -27,21 +29,27 @@ public class PokemonsFragment extends Fragment {
     public PokemonsFragment(){}
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
+
+    }
+
+    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
-        pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
+        FragmentPokemonsBinding binding = FragmentPokemonsBinding.inflate(inflater, container, false);
+        viewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
 
-        View view = inflater.inflate(R.layout.fragment_pokemons, container, false);
+            pokemons.stream().filter(p-> p.getState().equals(Pokemon.State.CAPTURED)).forEach(System.out::println);
+        });
+
         NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        Button btn = binding.btnTest;
 
-        Button btn = view.findViewById(R.id.btn_test);
-
-        return view;
+        return binding.getRoot();
     }
-
-    private PokedexViewModel pokedexViewModel;
-
 
 
     //pa recibir argumentos
@@ -55,4 +63,6 @@ public class PokemonsFragment extends Fragment {
 //        }
 //
 //    }
+
+    PokedexViewModel viewModel;
 }
