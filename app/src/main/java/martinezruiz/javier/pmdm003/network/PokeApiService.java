@@ -18,7 +18,10 @@ public interface PokeApiService {
 
 
     @GET("pokemon")
-    Call<PokemonList> getPokemonList(@Query("offset") int offset, @Query("limit") int limit);
+    Call<PokemonList> getPokemonListCall(@Query("offset") int offset, @Query("limit") int limit);
+
+    @GET("pokemon")
+    Observable<PokemonList> getPokemonList(@Query("offset") int offset, @Query("limit") int limit);
 
     @GET("pokemon/{name}")
     Observable<Pokemon> getPokemon(@Path("name") String name);

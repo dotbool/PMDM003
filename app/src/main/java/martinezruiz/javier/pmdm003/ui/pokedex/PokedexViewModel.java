@@ -6,12 +6,16 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.viewmodel.ViewModelInitializer;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableSource;
 import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.models.Pokemon;
@@ -20,6 +24,9 @@ import martinezruiz.javier.pmdm003.repository.FireRepository;
 import martinezruiz.javier.pmdm003.repository.FireRepositoryImp;
 import martinezruiz.javier.pmdm003.repository.PokeRepositoryImp;
 import martinezruiz.javier.pmdm003.repository.PokeRepository;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 /**
@@ -42,8 +49,6 @@ public class PokedexViewModel extends ViewModel {
 
 
     }
-
-
 
 
     /**
@@ -90,28 +95,93 @@ public class PokedexViewModel extends ViewModel {
         }
     }
 
+
     public void setCapturadosSp(ArrayList<String> capturadosSp) {
+
         this.capturadosSp = capturadosSp;
-
         if (!pokemonList.isInitialized()) {
-            repo.getPokemonList(0, 150, new PokeRepository.PokeRepositoryListener() {
-                @Override
-                public void onSuccess(PokemonList list) {
-                    pokemonList.postValue(list.getPokemonList());
-                }
+            ArrayList<Pokemon> list = new ArrayList<>();
+            repo.getPokemonList(0, 15)
+                    .flatMap(pokemonList1 -> Observable.fromIterable(pokemonList1.getPokemonList()))
+                    .concatMap(p-> {
+                        if(capturadosSp.contains(p.getNombre())){
+                            return repo.getPokemon(p.getNombre());
+                        }
+                        else {
+                            return Observable.just(p);
+                        }
+                    })
+                    .doOnNext(pokemon -> list.add(pokemon))
+                    .subscribe(po-> System.out.println(po),
+                            error->{},
+                            ()-> pokemonList.postValue(list));
 
-                @Override
-                public void onError(Exception e) {
-                    System.out.println(e);
 
-                }
-            });
+
+
+
+
+
+
+//            repo.getPokemonListCall(0, 15).enqueue(new Callback<PokemonList>() {
+//                @Override
+//                public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
+//                    ArrayList<Pokemon> list = (response.body().getPokemonList()); //lista pokedex
+//
+//                    for (Pokemon p : list) {
+//                        if (capturadosSp.contains(p.getNombre())) { //lista con capturados
+//                            Disposable capt = repo.getPokemon(p.getNombre()).map(pok -> {
+//
+//                                p.setAltura(pok.getAltura());
+//                                p.setImgUrl(pok.getImgUrl());
+//
+//                                return p;
+//                            }).subscribe(next -> {
+//                                    }, error -> {
+//                                    },
+//                                    () ->{
+//                                         pokemonList.postValue(list);
+//                                    });
+//                        }
+//                    }
+//                    pokemonList.postValue(list);
+//                }
+//
+//                @Override
+//                public void onFailure(Call<PokemonList> call, Throwable throwable) {
+//
+//                }
+//            });
         }
     }
 
-    public LiveData<List<Pokemon>> getPokemons(){
+
+
+
+
+
+
+//
+//        if (!pokemonList.isInitialized()) {
+//            repo.getPokemonList(0, 150, new PokeRepository.PokeRepositoryListener() {
+//                @Override
+//                public void onSuccess(PokemonList list) {
+//                    pokemonList.postValue(list.getPokemonList());
+//                }
+//
+//                @Override
+//                public void onError(Exception e) {
+//                    System.out.println(e);
+//
+//                }
+//            });
+//        }
+
+
+    public LiveData<List<Pokemon>> getPokemons() {
         return pokemonList;
     }
+
     private MutableLiveData<List<Pokemon>> pokemonList;
     private PokeRepositoryImp repo;
     private String TAG = getClass().getName();

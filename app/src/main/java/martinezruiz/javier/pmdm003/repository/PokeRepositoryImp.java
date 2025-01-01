@@ -17,28 +17,38 @@ public class PokeRepositoryImp implements PokeRepository {
 
     }
 
+    public Call<PokemonList> getPokemonListCall(int offset, int limit) {
+        return pokeApiService.getPokemonListCall(offset, limit);
+    }
+
+
+
+//    @Override
+//    public void getPokemonList(int offset, int limit, PokeRepositoryListener listener) {
+//
+//        Callback<PokemonList> callback  = new Callback<>() {
+//            @Override
+//            public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
+//                if (response.isSuccessful()) {
+//                    if (response.body() != null) {
+//                        listener.onSuccess(response.body());
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<PokemonList> call, Throwable throwable) {
+//                listener.onError((Exception) throwable);
+//            }
+//        };
+//
+//        pokeApiService.getPokemonList(offset, limit).enqueue(callback);
+//
+//    }
 
     @Override
-    public void getPokemonList(int offset, int limit, PokeRepositoryListener listener) {
-
-        Callback<PokemonList> callback  = new Callback<>() {
-            @Override
-            public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
-                if (response.isSuccessful()) {
-                    if (response.body() != null) {
-                        listener.onSuccess(response.body());
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<PokemonList> call, Throwable throwable) {
-                listener.onError((Exception) throwable);
-            }
-        };
-
-        pokeApiService.getPokemonList(offset, limit).enqueue(callback);
-
+    public Observable<PokemonList> getPokemonList(int offset, int limit) {
+        return pokeApiService.getPokemonList(offset, limit);
     }
 
     @Override
@@ -57,6 +67,12 @@ public class PokeRepositoryImp implements PokeRepository {
              });
 
     }
+
+    @Override
+    public Observable<Pokemon> getPokemon(String name){
+        return pokeApiService.getPokemon(name);
+    }
+
 
 
 

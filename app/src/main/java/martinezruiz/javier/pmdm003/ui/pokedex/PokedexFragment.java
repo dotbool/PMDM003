@@ -39,6 +39,7 @@ public class PokedexFragment extends Fragment implements ClickListener {
         super.onCreate(savedInstanceState);
         pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
         spService = new SharedPreferenceService(requireContext());
+
         pokedexViewModel.setCapturadosSp(spService.iniciarCapturados());
 
     }
