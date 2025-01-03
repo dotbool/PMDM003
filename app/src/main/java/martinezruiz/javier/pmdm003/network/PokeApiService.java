@@ -9,23 +9,13 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 
-/**
- * Aloja las llamadas que se harán a la API a través del servicio que ofrece Retrofit
- * EL parámetro de Call hace referencia al tipo de dato que la llamada espera
- */
 public interface PokeApiService {
-
-
-
-    @GET("pokemon")
-    Call<PokemonList> getPokemonListCall(@Query("offset") int offset, @Query("limit") int limit);
 
     @GET("pokemon")
     Observable<PokemonList> getPokemonList(@Query("offset") int offset, @Query("limit") int limit);
 
     @GET("pokemon/{name}")
     Observable<Pokemon> getPokemon(@Path("name") String name);
-//    Call<Pokemon> getPokemons(@Path("name") String name);
 
 
 

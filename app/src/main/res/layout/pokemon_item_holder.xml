@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/pokemon_card"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:animateLayoutChanges="true"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@color/yellow">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="5">
+
+        <ImageView
+            android:id="@+id/pokemon_img"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:scaleType="fitCenter"
+            android:layout_gravity="start|center"
+            android:contentDescription="imagen"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3">
+
+            <TextView
+                android:id="@+id/pokemon_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                style="@style/name_pokemon"
+                android:text=""/>
+            <TextView
+                android:id="@+id/pokemon_types"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                style="@style/type_pokemon"
+                android:text=""/>
+        </LinearLayout>
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -32,14 +32,14 @@ public class SharedPreferenceService {
         editor.apply();
     }
 
-    public List<Pokemon> leerCapturados(List<Pokemon> pokemons){
+    public void leerCapturados(List<Pokemon> pokemons){
         for (Pokemon p: pokemons){
             String state = sp.getString(p.getNombre(), "FREE");
             if(state.equals(Pokemon.State.CAPTURED.name())){
                 p.setState(Pokemon.State.CAPTURED);
             }
         }
-        return pokemons;
+//        editor.clear().apply();
     }
 
     public ArrayList<String> iniciarCapturados(){

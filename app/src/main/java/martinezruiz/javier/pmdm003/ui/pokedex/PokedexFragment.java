@@ -36,10 +36,10 @@ public class PokedexFragment extends Fragment implements ClickListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
         spService = new SharedPreferenceService(requireContext());
-
         pokedexViewModel.setCapturadosSp(spService.iniciarCapturados());
 
     }
@@ -56,32 +56,63 @@ public class PokedexFragment extends Fragment implements ClickListener {
         recycler.setAdapter(adapter);
 
 
+
+
+//        adapter = new PokedexAdapter(this.pokemons, this); //le metemos la lista
+//        recycler.setAdapter(adapter); //la primera vez la lista está vacía pero lo que nos importa
+        //es el objeto al que va a apuntar el adapter. Queremos mantener el mismo objeto
+        //durante todo el ciclo de vida del fragmento
+
         //The first method where it is safe to access the view lifecycle is onCreateView
         //Aunque google dice también onCreate pero salta la exception
-
+//
+//        pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons ->{
+//
+//            this.pokemons = (ArrayList<Pokemon>) pokemons; // si no es la primera vez es que se
+//            spService = new SharedPreferenceService(requireContext());
+//            if(adapter == null){ //el adapter no es destruido en los cambios de configuración pero
+//                //parece ser que que es dettached
+//                spService.leerCapturados(this.pokemons);
+//                adapter = new PokedexAdapter(this.pokemons, this);
+//                recycler.setAdapter(adapter);
+//            }
+//            else{
+//                recycler.setAdapter(adapter); //como es dettached hay que volver a establecerlo
+//                this.pokemons.stream() //escribimos en el SharedPreferences los nuevos capturados
+//                        .filter(p -> p.getState().equals(Pokemon.State.CAPTURED))
+//                        .forEach(p -> spService.escribirCapturado(p.getNombre(),
+//                                Pokemon.State.CAPTURED.name()));
+//            }
+////            adapter.notifyDataSetChanged(); //notificamos los cambios al adapter
+//
+//        });
+//
         pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
-            if (adapter.getItemCount() == 0) {
-                System.out.println(pokemons.hashCode());
-                if (spService == null) {
-                    spService = new SharedPreferenceService(requireContext());
-                }
-                spService.leerCapturados(pokemons);
-                this.pokemons.clear();
-                this.pokemons.addAll(pokemons);
-                spService = null;
+            if (spService == null) {
+                spService = new SharedPreferenceService(requireContext());
+            }
+            if (adapter.getItemCount() == 0) { //la primera vez, la lista está vacía
+                System.out.println("pokemodex 0");
 
-            } else {
-                this.pokemons = (ArrayList<Pokemon>) pokemons;
-                if (spService == null) {
-                    spService = new SharedPreferenceService(requireContext());
-                }
-                this.pokemons.stream()
+                spService.leerCapturados(pokemons); //este método setea el valor state de los pokemons
+                //que vienen en Captured, si es que estaban en el sharedpreference. No se crean nuevos
+                // objetos Pokemon, sino que se setean las propiedades de lo que traiga el LiveData
+                // Si creo nuevos objetos cambia la referencia de la lista completa y ya no sería al
+                // que apunta el Adapter por lo que las notificacines de cambio no funcionarían
+                this.pokemons.addAll(pokemons); //añadimos todos y llevamos el service a null para
+                //ayudar al garbage
+
+            }
+            else {
+                this.pokemons = (ArrayList<Pokemon>) pokemons; // si no es la primera vez es que se
+                //han producido cambios en la lista, esto es , que hay nuevos Capturados
+                this.pokemons.stream() //escribimos en el SharedPreferences los nuevos capturados
                         .filter(p -> p.getState().equals(Pokemon.State.CAPTURED))
                         .forEach(p -> spService.escribirCapturado(p.getNombre(),
                                 Pokemon.State.CAPTURED.name()));
-                spService = null;
             }
-            adapter.notifyDataSetChanged();
+            spService = null;
+            adapter.notifyDataSetChanged(); //notificamos los cambios al adapter
         });
 
         setCaptureBtnUI(); //Adaptamos al btn de captura para que se ajuste a la pantalla
@@ -141,7 +172,6 @@ public class PokedexFragment extends Fragment implements ClickListener {
     private String TAG = getClass().getName();
     PokedexAdapter adapter;
     RecyclerView recycler;
-
     SharedPreferenceService spService;
 
 

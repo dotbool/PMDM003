@@ -1,8 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<style name="h1">
-    <item name="android:textSize">20dp</item>
-    <item name="android:textStyle">bold</item>
-    <item name="android:layout_marginBottom">32dp</item>
-</style>
+
+    <style name="h1">
+        <item name="android:textSize">20dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:layout_marginBottom">32dp</item>
+    </style>
+
+    <style name="name_pokemon">
+        <item name="android:textSize">40dp</item>
+        <item name="android:fontFamily">@font/bangers_regular</item>
+    </style>
+
+    <style name="type_pokemon">
+        <item name="android:textSize">20dp</item>
+        <item name="android:fontFamily">@font/bungee_tint_regular</item>
+    </style>
 </resources>

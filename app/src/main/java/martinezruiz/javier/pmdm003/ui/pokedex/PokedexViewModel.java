@@ -1,32 +1,17 @@
 package martinezruiz.javier.pmdm003.ui.pokedex;
 
-
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import androidx.lifecycle.viewmodel.ViewModelInitializer;
-
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.ObservableSource;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Function;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.models.Pokemon;
-import martinezruiz.javier.pmdm003.models.PokemonList;
-import martinezruiz.javier.pmdm003.repository.FireRepository;
 import martinezruiz.javier.pmdm003.repository.FireRepositoryImp;
 import martinezruiz.javier.pmdm003.repository.PokeRepositoryImp;
-import martinezruiz.javier.pmdm003.repository.PokeRepository;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 
 /**
@@ -40,11 +25,13 @@ public class PokedexViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-//        disposePokemons.dispose();
+        disposablePokemon.dispose();
+        disposableCapturados.dispose();
     }
 
     public PokedexViewModel() {
         pokemonList = new MutableLiveData<>();
+        pokemonCaptured = new MutableLiveData<>();
         repo = new PokeRepositoryImp();
 
 
@@ -73,21 +60,24 @@ public class PokedexViewModel extends ViewModel {
     protected void capture() {
 
         List<Pokemon> pokemons = getPokemons().getValue();
+//        List<Pokemon> captured = getCaptured().getValue();
         if (pokemons != null) {
             for (Pokemon p : pokemons) {
                 if (p.getState().equals(Pokemon.State.WANTED)) {
                     disposablePokemon = repo.getPokemon(p)
                             .concatMap(pokemon -> repoFire.insertPokemon(pokemon))
+//                            .doOnNext(bol-> captured.add(p))
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     next -> {
-                                        System.out.println("next: " + next);
+
                                     },
                                     onError -> {
                                     },
                                     () -> {
                                         pokemonList.postValue(pokemons);
+//                                        pokemonCaptured.postValue(captured);
                                     });
 
                 }
@@ -96,62 +86,57 @@ public class PokedexViewModel extends ViewModel {
     }
 
 
+    public void delete(Pokemon pokemon){
+        List<Pokemon> pokemonListR = pokemonList.getValue();
+//        List<Pokemon> pokemonCapturedR = pokemonCaptured.getValue();
+        pokemon.setState(Pokemon.State.FREE);
+//        pokemonCapturedR.remove(pokemon);
+        pokemonList.setValue(pokemonListR);
+//        pokemonCaptured.setValue(pokemonCapturedR);
+
+    }
+
+    /**
+     * Esté método inicia la carga desde la API y es llamado desde el fragmentPokedex.
+     * Se ha hecho así porque cuando la app se inicia debe cargar los pokemon que en anteriores
+     * sesiones se hubiesen capturado. El sharedPreferences está ligado al contexto de la app
+     * y el viewmodel no tiene acceso a este contexto y si he entendido bien, no debe tenerlo para
+     * que no se produzcan fugas
+     *
+     * @param capturadosSp
+     */
     public void setCapturadosSp(ArrayList<String> capturadosSp) {
 
         this.capturadosSp = capturadosSp;
         if (!pokemonList.isInitialized()) {
             ArrayList<Pokemon> list = new ArrayList<>();
-            repo.getPokemonList(0, 15)
+            ArrayList<Pokemon> capturedList = new ArrayList<>();
+            disposableCapturados = repo.getPokemonList(0, 15)
                     .flatMap(pokemonList1 -> Observable.fromIterable(pokemonList1.getPokemonList()))
-                    .concatMap(p-> {
-                        if(capturadosSp.contains(p.getNombre())){
-                            return repo.getPokemon(p.getNombre());
+                    .concatMap(p -> {
+                        if (capturadosSp.contains(p.getNombre())) {
+                            return repo.getPokemon(p);
                         }
                         else {
                             return Observable.just(p);
                         }
-                    })
-                    .doOnNext(pokemon -> list.add(pokemon))
-                    .subscribe(po-> System.out.println(po),
-                            error->{},
-                            ()-> pokemonList.postValue(list));
-
-
-
-
-
-
-
-
-//            repo.getPokemonListCall(0, 15).enqueue(new Callback<PokemonList>() {
-//                @Override
-//                public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
-//                    ArrayList<Pokemon> list = (response.body().getPokemonList()); //lista pokedex
-//
-//                    for (Pokemon p : list) {
-//                        if (capturadosSp.contains(p.getNombre())) { //lista con capturados
-//                            Disposable capt = repo.getPokemon(p.getNombre()).map(pok -> {
-//
-//                                p.setAltura(pok.getAltura());
-//                                p.setImgUrl(pok.getImgUrl());
-//
-//                                return p;
-//                            }).subscribe(next -> {
-//                                    }, error -> {
-//                                    },
-//                                    () ->{
-//                                         pokemonList.postValue(list);
-//                                    });
+                    }).subscribeOn(Schedulers.io())
+                    .doOnNext( p->{
+//                        if(p.getState().equals(Pokemon.State.CAPTURED)){
+//                            capturedList.add(p);
 //                        }
-//                    }
-//                    pokemonList.postValue(list);
-//                }
-//
-//                @Override
-//                public void onFailure(Call<PokemonList> call, Throwable throwable) {
-//
-//                }
-//            });
+                        list.add(p);
+                    })
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(po -> {
+                            },
+                            error -> {
+                            },
+                            () ->{
+                                    pokemonList.postValue(list);
+//                                    pokemonCaptured.postValue(capturedList);
+                                });
+
         }
     }
 
@@ -161,51 +146,50 @@ public class PokedexViewModel extends ViewModel {
 
 
 
-//
-//        if (!pokemonList.isInitialized()) {
-//            repo.getPokemonList(0, 150, new PokeRepository.PokeRepositoryListener() {
-//                @Override
-//                public void onSuccess(PokemonList list) {
-//                    pokemonList.postValue(list.getPokemonList());
-//                }
-//
-//                @Override
-//                public void onError(Exception e) {
-//                    System.out.println(e);
-//
-//                }
-//            });
-//        }
 
 
     public LiveData<List<Pokemon>> getPokemons() {
         return pokemonList;
     }
-
+    public LiveData<List<Pokemon>> getCaptured(){
+        return pokemonCaptured;
+    }
+    private MutableLiveData<List<Pokemon>> pokemonCaptured;
     private MutableLiveData<List<Pokemon>> pokemonList;
     private PokeRepositoryImp repo;
     private String TAG = getClass().getName();
     FireRepositoryImp repoFire = FireRepositoryImp.getInstance();
     Disposable disposablePokemon;
+    Disposable disposableCapturados;
     private ArrayList<String> capturadosSp;
+
+    class LiveDataPokemon{
+
+        public LiveDataPokemon() {
+            pokemonList = new ArrayList<>();
+            indices = new ArrayList<>();
+        }
+
+        public List<Integer> getIndices() {
+            return indices;
+        }
+
+        public void setIndices(List<Integer> indices) {
+            this.indices = indices;
+        }
+
+        public List<Pokemon> getPokemonList() {
+            return pokemonList;
+        }
+
+        public void setPokemonList(List<Pokemon> pokemonList) {
+            this.pokemonList = pokemonList;
+        }
+
+        List<Pokemon> pokemonList;
+        List<Integer> indices;
+    }
 }
 
 
-//        if(!pokemonList.isInitialized()){
-//            repo.getPokemonList(0, 150, new Callback<PokemonList>() {
-//                @Override
-//                public void onResponse(Call<PokemonList> call, Response<PokemonList> response) {
-//                    if(response.isSuccessful()){
-//                        if(response.body()!=null) {
-//                            pokemonList.postValue(response.body().getPokemonList());
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Call<PokemonList> call, Throwable throwable) {
-//                    System.out.println(throwable.getMessage());
-//                }
-//            });
-//        }
 

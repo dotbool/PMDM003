@@ -27,7 +27,7 @@ public class PokedexAdapter extends RecyclerView.Adapter<PokedexAdapter.PokeView
         onClickListener.onClick(pokemon);
     }
 
-    class PokeViewHolder extends RecyclerView.ViewHolder {
+    static class PokeViewHolder extends RecyclerView.ViewHolder {
 
         PokedexItemHolderBinding binding;
 
@@ -58,6 +58,15 @@ public class PokedexAdapter extends RecyclerView.Adapter<PokedexAdapter.PokeView
     }
 
 
+    /**
+     * Este método es invocado por el layoutmanager que supongo que entrará en acción cuando se
+     * notifica al adapter que hay cambios
+     * @param parent The ViewGroup into which the new View will be added after it is bound to
+     *               an adapter position.
+     * @param viewType The view type of the new View.
+     *
+     * @return
+     */
     @NonNull
     @Override
     public PokeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
