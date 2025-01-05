@@ -24,7 +24,9 @@ Las imágenes son tratadas con la librería Glide
 
 ## Instrucciones de uso
 
-La aplicación puede clonarse
+La aplicación puede desplegarse desde el IDE de Android Studio. Para clonar el repositorio: 
+
+1. Es preciso copiar la dirección del mismo que puede encontrarse en este mismo repositorio
 
 
 
