@@ -26,7 +26,16 @@ Las imágenes son tratadas con la librería Glide
 
 La aplicación puede desplegarse desde el IDE de Android Studio. Para clonar el repositorio: 
 
-1. Es preciso copiar la dirección del mismo que puede encontrarse en este mismo repositorio
+1. Es preciso copiar la dirección del mismo que puede encontrarse en este mismo repositorio en la pestaña coloreada de verde: 'code'
+2. Una vez copiada podemos ir al IDE y en File -> new -> Project from version control -> clone
+3. Será preciso instalar algún emulador. Puede hacerse en el IDE en: Menu -> tools- device manager. En la pestaña desplegada podemos agregar alguno pulsando el símbolo +, create virtual device y asignándole la versión de android preferida
+4. Una vez instalado el IDE compila y ejecuta la app pulsando el 'play'
+
+
+## Conclusiones del desarrollador
+
+La carencia total de conocimiento relacionado con el framework de Android ha convertido el desarrollo de esta sencilla aplicación en una tarea exigente. Como se desconoce el funcionamiento de todos los componentes se ha tenido que realizar lectura y testeo de todo lo que se ha implementado. Y como es la primera vez, habrá que repetirlo muchas más veces para que el conocimiento que se pretende se consolide. Se ha tenido en cuenta para la construcción de la app, los ciclos de vida de actividades y fragmentos. Se ha intentado construir de forma sencilla, buscando crear la menor cantidad posible de objetos en la idea de que la aplicación pueda funcionar de forma fluida. Se ha explorado la necesidad de crearla con más de un hilo para que las peticiones de datos no interfieran con la interfaz del usuario.
+
 
 
 
