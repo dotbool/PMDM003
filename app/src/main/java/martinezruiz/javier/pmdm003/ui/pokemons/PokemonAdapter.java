@@ -9,12 +9,18 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 import martinezruiz.javier.pmdm003.databinding.PokemonItemHolderBinding;
 import martinezruiz.javier.pmdm003.models.Pokemon;
+import martinezruiz.javier.pmdm003.ui.ClickListener;
 
+
+/**
+ * Adaptador para los pokemons capturados
+ */
 public class PokemonAdapter  extends RecyclerView.Adapter<PokemonAdapter.ViewHolder> {
 
 
-    public PokemonAdapter(ArrayList<Pokemon> pokemons) {
+    public PokemonAdapter(ArrayList<Pokemon> pokemons, ClickListener listener) {
         this.pokemons = pokemons;
+        this.listener = listener;
 
     }
 
@@ -29,12 +35,12 @@ public class PokemonAdapter  extends RecyclerView.Adapter<PokemonAdapter.ViewHol
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-//        Pokemon pokemon = PokemonAdapter.this.pokemons.get(position);
-//        if(pokemon.getState().equals(Pokemon.State.CAPTURED)){
-            holder.bind(position);
-        System.out.println("on binviewholder");
+        Pokemon pokemon = this.pokemons.get(position);
+        holder.binding.getRoot().setOnClickListener(v->{
+            listener.onClick(pokemon);
+        });
+        holder.bind(pokemon);
 
-//        }
     }
 
     @Override
@@ -54,8 +60,7 @@ public class PokemonAdapter  extends RecyclerView.Adapter<PokemonAdapter.ViewHol
 
         }
 
-        public void bind(int position){
-            Pokemon pokemon = PokemonAdapter.this.pokemons.get(position);
+        public void bind(Pokemon pokemon){
                 Glide.with(binding.getRoot())
                         .load(pokemon.getImgUrl().getFrontDefault())
                         .into(binding.pokemonImg);
@@ -70,10 +75,6 @@ public class PokemonAdapter  extends RecyclerView.Adapter<PokemonAdapter.ViewHol
         PokemonItemHolderBinding binding;
     }
 
-    public void setPokemons(ArrayList<Pokemon> pokemons) {
-        this.pokemons = pokemons;
-        System.out.println(pokemons.hashCode()+ "en el set");
-    }
-
     ArrayList<Pokemon> pokemons;
+    ClickListener listener;
 }

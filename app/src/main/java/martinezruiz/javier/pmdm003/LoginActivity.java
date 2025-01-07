@@ -2,6 +2,8 @@ package martinezruiz.javier.pmdm003;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
@@ -11,6 +13,9 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
 import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult;
+import com.google.android.gms.auth.api.credentials.CredentialsClient;
+import com.google.android.gms.auth.api.identity.CredentialSavingClient;
+import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -38,6 +43,7 @@ public class LoginActivity extends AppCompatActivity {
 
         Intent signInIntent = AuthUI.getInstance()
                 .createSignInIntentBuilder()
+                .setIsSmartLockEnabled(false)
                 .setAvailableProviders(providers)
                 .setLogo(R.drawable.loginicon)     // Set logo drawable
                 .setTheme(R.style.Base_Theme_PMDM003)      // Set theme
@@ -62,34 +68,40 @@ public class LoginActivity extends AppCompatActivity {
 
     private void onSignInResult(FirebaseAuthUIAuthenticationResult result) {
         IdpResponse response = result.getIdpResponse();
+
         if (result.getResultCode() == RESULT_OK) {
             // Successfully signed in
-            goToMainActivity();
+            user = mAuth.getCurrentUser();
+            Log.d("Log ONSIGNINGRESULT", user.toString());
+            Log.d("Log ONSIGNINGRESULT", user.getEmail().toString());
+            goToMainActivity(user.getEmail());
         } else {
-            System.out.println(result+"result");
+
+            Log.d("Log ON ELSE", user.toString());
 
 //            Snackbar snackLogin = Snackbar.make(this.findViewById(result.getResultCode()), "nono", 3000);
 //            snackLogin.show();
         }
     }
-//javiermaruiz@gmail.com
 
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser user = mAuth.getCurrentUser();
+        user = mAuth.getCurrentUser();
 
         if (user!=null) {
-            goToMainActivity();
+            String email = user.getEmail();
+            goToMainActivity(email);
         }
         else {
             signIn();
         }
     }
 
-    private void goToMainActivity() {
+    private void goToMainActivity(String email) {
 
         Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("email", email);
         startActivity(i);
         finish();
     }
@@ -105,5 +117,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private FirebaseAuth mAuth;
+    private FirebaseUser user;
 
 }

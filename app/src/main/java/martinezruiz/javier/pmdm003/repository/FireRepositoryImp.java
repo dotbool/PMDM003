@@ -1,22 +1,24 @@
 package martinezruiz.javier.pmdm003.repository;
 
-import androidx.annotation.NonNull;
+import android.util.Log;
 
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import io.reactivex.rxjava3.core.Observable;
+import martinezruiz.javier.pmdm003.MainActivity;
 import martinezruiz.javier.pmdm003.models.Pokemon;
 
+
+/**
+ * Repositorio para las consultas a FireBase
+ */
 public class FireRepositoryImp implements FireRepository {
 
-    final static String COL = "pokemon";
 
     private FireRepositoryImp(){
 
     }
-
 
     public static FireRepositoryImp getInstance(){
         if (INSTANCE == null){
@@ -25,23 +27,53 @@ public class FireRepositoryImp implements FireRepository {
         return INSTANCE;
     }
 
-
+    /**
+     * Borra un objeto pokemon en FireBase
+     * Este método siempre devuelve false porque la Task no está terminada.
+     * Pero devuelve false en onSuccess. Se modificará en próximas versiones
+     * para que la semántica de la devolución sea coherente
+     * @param pokemon
+     * @return
+     */
     @Override
-    public void deletePokemon(String nombre) {
+    public Observable<Boolean> deletePokemon(Pokemon pokemon) {
+        path = "pok/"+userEmail+"/pokemon";
+        return Observable.just(db.collection(path)
+                .document(pokemon.getNombre())
+                .delete().isSuccessful());
+    }
+
+    /**
+     * Inserta un objeto pokemon en firebase
+     * Como la librería de firebase devuelve un Task void, se ha transformado el tipo
+     * devuelto para que encaje con el diseño
+     * @param pokemon
+     * @return
+     */
+    public Observable<Pokemon> insertPokemon(Pokemon pokemon){
+        path = "pok/"+userEmail+"/pokemon";
+        return Observable.fromCallable(()->{
+            final Task<Void> task = db.collection(path)
+                    .document(pokemon.getNombre())
+                    .set(pokemon);
+            Tasks.await(task);
+            if(task.isSuccessful()){
+                return pokemon;
+            }
+            else{
+                return null;
+            }
+        });
 
     }
 
-    public Observable<Boolean> insertPokemon(Pokemon pokemon){
-
-        return Observable.just(db.collection(COL)
-                .document(pokemon.getNombre())
-                .set(pokemon)
-                .isSuccessful());
-
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     private static FireRepositoryImp INSTANCE;
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    String userEmail;
+    String path;
 
 }

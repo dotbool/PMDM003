@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@color/yellow"
+    style="@style/type_pokemon"
+
+    >
+    
+    <ImageView
+        android:id="@+id/details_img"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:adjustViewBounds="true"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:scaleType="fitCenter"
+        android:paddingBottom="160dp"
+        >
+    </ImageView>
+
+    <TextView
+        android:id="@+id/details_name_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_img"
+        app:layout_constraintTop_toTopOf="parent"
+        style="@style/details_title"
+        android:text="@string/name_pokemon"/>
+    <TextView
+        android:id="@+id/details_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_index_title"
+        app:layout_constraintTop_toTopOf="@id/details_name_title"
+        app:layout_constraintBottom_toBottomOf="@id/details_name_title"
+        android:layout_marginStart="16dp"
+        style="@style/details"
+        android:text=""/>
+
+    <TextView
+        android:id="@+id/details_index_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_img"
+        app:layout_constraintTop_toBottomOf="@id/details_name_title"
+        style="@style/details_title"
+        android:text="@string/index_pokedex"/>
+
+    <TextView
+        android:id="@+id/details_index"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_index_title"
+        app:layout_constraintTop_toTopOf="@id/details_index_title"
+        app:layout_constraintBottom_toBottomOf="@id/details_index_title"
+        android:layout_marginStart="16dp"
+        style="@style/details"
+        android:text=""/>
+
+    <TextView
+        android:id="@+id/details_types_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_img"
+        app:layout_constraintTop_toBottomOf="@id/details_index_title"
+        android:text="@string/types"
+        style="@style/details_title"
+        />
+
+    <TextView
+        android:id="@+id/details_types"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_index_title"
+        app:layout_constraintTop_toTopOf="@id/details_types_title"
+        app:layout_constraintBottom_toBottomOf="@id/details_types_title"
+        android:layout_marginStart="16dp"
+        style="@style/details"
+        android:text=""/>
+
+    <TextView
+        android:id="@+id/details_height_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_img"
+        app:layout_constraintTop_toBottomOf="@id/details_types_title"
+        style="@style/details_title"
+        android:text="@string/height"/>
+    <TextView
+        android:id="@+id/details_height"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_index_title"
+        app:layout_constraintTop_toTopOf="@id/details_height_title"
+        app:layout_constraintBottom_toBottomOf="@id/details_height_title"
+        android:layout_marginStart="16dp"
+        style="@style/details"
+        android:text=""/>
+
+    <TextView
+        android:id="@+id/details_weight_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_img"
+        app:layout_constraintTop_toBottomOf="@id/details_height_title"
+        style="@style/details_title"
+        android:text="@string/weight"/>
+
+    <TextView
+        android:id="@+id/details_weight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/details_index_title"
+        app:layout_constraintTop_toTopOf="@id/details_weight_title"
+        app:layout_constraintBottom_toBottomOf="@id/details_weight_title"
+        android:layout_marginStart="16dp"
+        style="@style/details"
+        android:text=""/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

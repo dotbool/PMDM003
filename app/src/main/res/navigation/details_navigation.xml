@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/details_navigation"
+    app:startDestination="@id/navigation_details"
+    >
+
+    <fragment
+        android:id="@+id/navigation_details"
+        android:name="martinezruiz.javier.pmdm003.ui.pokemons.PokemonDetailsFragment"
+        >
+    </fragment>
+
+</navigation>

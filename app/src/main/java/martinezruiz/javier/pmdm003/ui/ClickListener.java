@@ -1,4 +1,4 @@
-package martinezruiz.javier.pmdm003.ui.pokedex;
+package martinezruiz.javier.pmdm003.ui;
 
 import martinezruiz.javier.pmdm003.models.Pokemon;
 

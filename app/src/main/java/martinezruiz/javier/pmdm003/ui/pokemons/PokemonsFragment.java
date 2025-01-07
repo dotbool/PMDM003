@@ -1,6 +1,9 @@
 package martinezruiz.javier.pmdm003.ui.pokemons;
 
 import androidx.lifecycle.ViewModelProvider;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,41 +14,62 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 
+
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.databinding.FragmentPokemonsBinding;
 import martinezruiz.javier.pmdm003.models.Pokemon;
+import martinezruiz.javier.pmdm003.ui.ClickListener;
 import martinezruiz.javier.pmdm003.ui.pokedex.PokedexViewModel;
 import martinezruiz.javier.pmdm003.R;
-import martinezruiz.javier.pmdm003.ui.pokedex.PokedexViewModel;
 
-public class PokemonsFragment extends Fragment {
+/**
+ * Clase que muestra pokemons capturados y posibilita borrarlos.
+ * Cuando arranca averigua si se puede o no borrar, que es un valor que se guarda en el sharedPreferences
+ * general. También se abre el sharedpreference del usuario logado para eliminar los pokemons que
+ * borre. El deslizamiento de cada pokemon es posible si es posible borrar
+ */
+public class PokemonsFragment extends Fragment implements ClickListener {
 
-    private PokemonsViewModel mViewModel;
 
-    private  String[] args;
-
-    public PokemonsFragment(){ this.pokemons = new ArrayList<>();
-
-    }
+    public PokemonsFragment(){ this.pokemons = new ArrayList<>();}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
+        spSettings = requireActivity().
+                getSharedPreferences(getString(R.string.preference_file_settings), Context.MODE_PRIVATE);
+        allowDelete = spSettings.getBoolean(getString(R.string.delete_preference_key), false);
+
+        pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
+        spService = new SharedPreferenceService(requireContext(), pokedexViewModel.getUserEmail());
+
 
         helper = new ItemTouchHelper(new ItemTouchHelper.Callback() {
             @Override
             public int getMovementFlags(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder) {
-                return makeMovementFlags( ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.END);
+                    int movement;
+                    if(allowDelete){
+                        movement = makeMovementFlags(0, ItemTouchHelper.END);
+                    }
+                    else{
+                        movement = makeMovementFlags(0,0);
+                        Snackbar.make(getView(),
+                                "Habilite el borrado en Ajustes",
+                                BaseTransientBottomBar.LENGTH_SHORT)
+                                .show();
+                    }
+                    return movement;
             }
 
             @Override
@@ -55,11 +79,13 @@ public class PokemonsFragment extends Fragment {
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
-                itemRemoved = viewHolder.getAdapterPosition();
-                Pokemon pokemon = pokemons.get(viewHolder.getAdapterPosition());
-                viewModel.delete(pokemon);
-                adapter.notifyItemRemoved(viewHolder.getAdapterPosition());
-
+                if(allowDelete) {
+                    Pokemon pokemon = pokemons.get(viewHolder.getAdapterPosition());
+                    pokedexViewModel.delete(pokemon); //borramos base datos
+                    pokemons.remove(viewHolder.getAdapterPosition()); //borramos vista
+                    adapter.notifyItemRemoved(viewHolder.getAdapterPosition()); //avisamos al adapter
+                    spService.liberarCapturado(pokemon.getNombre()); //quitamos del sharedPreference
+                }
             }
         });
 
@@ -75,69 +101,50 @@ public class PokemonsFragment extends Fragment {
         recycler = binding.rvPokemonCaptured; // obtemos la ref del recycler
         LinearLayoutManager llm = new LinearLayoutManager(getContext()); //creamos un layout para el recycler
         recycler.setLayoutManager(llm);
-//        adapter = new PokemonAdapter(pokemons); //creamos el adaptar con la lista de pokemons que estará
-        //vacía la primera vez porque la data llega de forma asíncrona. Lo que nos importa es el objeto
-        //arrayList al que va a apuntar el adapter
-        adapter = new PokemonAdapter(this.pokemons);
-
-//        adapter.setPokemons(this.pokemons); //si no metemos el setAdapter en el createview, nos da
-//        un error que no detiene la app, indicando qskipping layout, no adapter attached
-        // Si queremos eviatr eso, hay que vincular el recyler con el adapter aquí
-        // Si no le metemos una lista al adapter, siempre nos devolverá la primera vez un itemcount == 0
-        // si le metemos una lista, ya no podemos perder esa referencia por lo que todo lo que venga
-        // del mutableLiveData habrá que insertarlo en el list al que apunte el adapter
-        //
-
-        //el apter no es destruido en los cambios de configuracion o cuando se cambia de fragmento
-        //pero si es attached al fragmento  y si no tiene una referencia a una lista pues se hace sin
-        //lista
-
-        //si queremos hacer uno del notifyitemchanged del adapter tenemos que saber que item ha sido
-        //modificado para o hacer un addAll
+        adapter = new PokemonAdapter(this.pokemons, this);
 
         recycler.setAdapter(adapter);
         helper.attachToRecyclerView(recycler);
 
 
-        viewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
-            if(adapter.getItemCount() == 0){
+        pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
+            if(adapter.getItemCount() == 0){ //la primera vez siempre es 0
 
-//                this.pokemons.addAll(pokemons);
                 this.pokemons.addAll(pokemons.stream()
                         .filter(p->p.getState().equals(Pokemon.State.CAPTURED))
                         .collect(Collectors.toList()));
                 adapter.notifyItemRangeInserted(0, this.pokemons.size());
             }
-            else{
-                this.pokemons.remove(itemRemoved);
-            }
         });
 
-        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
 
         return binding.getRoot();
     }
 
+    /**
+     * Cuando hay click creamos un bundle con el nombre y se lo pasamos al details para que allí
+     * se rescate la info
+     * @param pokemon
+     */
+    @Override
+    public void onClick(Pokemon pokemon) {
+        Bundle bundle = new Bundle();
+        bundle.putString("name", pokemon.getNombre());
+        navController.navigate(R.id.action_navigation_pokemons_to_details_navigation, bundle);
+    }
 
-    //pa recibir argumentos
-//    @Override
-//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-//        args = PokemonsFragmentArgs.fromBundle(getArguments()).getPokemonsCapturados();
-//        if(args!=null){
-//            for(String a: args){
-//                System.out.println(a);
-//            }
-//        }
-//
-//    }
 
-    PokedexViewModel viewModel;
+    SharedPreferenceService spService;
+    SharedPreferences spSettings;
+    PokedexViewModel pokedexViewModel;
     FragmentPokemonsBinding binding;
     RecyclerView recycler;
     PokemonAdapter adapter;
     private ArrayList<Pokemon> pokemons;
     ItemTouchHelper helper;
+    NavController navController;
+    Boolean allowDelete = false;
 
-    int itemRemoved = -1;
 
 }

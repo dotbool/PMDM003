@@ -2,10 +2,12 @@
     <string name="app_name">PMDM003</string>
     <string name="menu_bottom_pokemons">Mis pokemons</string>
     <string name="menu_bottom_pokedex">Pokedex</string>
-    <string name="menu_bottom_settings">Settings</string>
+    <string name="menu_bottom_settings">Ajustes</string>
 
 
-    <string name="switch_borrado">"Permitir borrar?</string>
+    <string name="switch_delete">Permitir borrar?</string>
+    <string name="delete_preference_key">allow_delete</string>
+    <string name="language_preference_key">language</string>
     <string name="Settings">Ajustes</string>
     <string name="language">Idioma</string>
     <string name="logout">Cerrar sesión</string>
@@ -15,4 +17,10 @@
     <string name="sesion_cerrada">Sesión cerrada:</string>
     <string name="capturar">Capturar</string>
     <string name="preference_file_capture">capturados</string>
+    <string name="preference_file_settings">settings</string>
+    <string name="name_pokemon">Nombre:</string>
+    <string name="index_pokedex">Índice pokedex:</string>
+    <string name="types">Tipos:</string>
+    <string name="height">Altura:</string>
+    <string name="weight">Peso:</string>
 </resources>

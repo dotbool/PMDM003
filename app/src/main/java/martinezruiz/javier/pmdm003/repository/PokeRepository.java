@@ -8,7 +8,6 @@ public interface PokeRepository {
 
     Observable<PokemonList> getPokemonList(int offset, int limit);
     Observable<Pokemon> getPokemon(Pokemon pokemon);
-    Observable<Pokemon> getPokemon(String name);
 
 
 }

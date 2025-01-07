@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Hace peticiones a la API  y además convierte el JSON que obtiene en la respuesta en objetos
- * POJO para usarlos en la app
+ * POJO para usarlos en la app.
  */
 public class PokeApiClient {
 

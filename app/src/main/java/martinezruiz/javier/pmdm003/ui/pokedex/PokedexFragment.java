@@ -1,31 +1,38 @@
 package martinezruiz.javier.pmdm003.ui.pokedex;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
-
 import martinezruiz.javier.pmdm003.R;
 import martinezruiz.javier.pmdm003.SharedPreferenceService;
 import martinezruiz.javier.pmdm003.databinding.FragmentPokedexBinding;
 import martinezruiz.javier.pmdm003.models.Pokemon;
+import martinezruiz.javier.pmdm003.ui.ClickListener;
 
 /**
- *
+ * Esta clase atiende el modelo de datos que proporciona pokedexviewmodel mostrando en la vista
+ * la totalidad de los pokemons que vienen de la api. Cada usuario que use este dispositivo tiene un
+ * archivo de preferencias dónse se guardan pares nombrePokemon: statePokemon, por ejemplo
+ * Bulbasaur: capture. Cuando el fragmento se crea, se llama a ese archivo para que recupere todos
+ * los pokemosn capturados que tenía el usuario. Esa lista se envía a pokedexViewmodel para que
+ * solicite a la APi la info de los pokemosn capturados de tal forma que el usuario vea en la lista
+ * de pokedex tanto los no capturados como los que si lo están.
  */
 public class PokedexFragment extends Fragment implements ClickListener {
 
@@ -36,10 +43,12 @@ public class PokedexFragment extends Fragment implements ClickListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+
         pokedexViewModel = new ViewModelProvider(requireActivity()).get(PokedexViewModel.class);
-        spService = new SharedPreferenceService(requireContext());
+        spService = new SharedPreferenceService(requireContext(), pokedexViewModel.getUserEmail());
+        //enviámos al viewmodel los que ya están capturados en sesiones anteriores para que pida
+        //a firebase la info y podamos verlos en capturados
         pokedexViewModel.setCapturadosSp(spService.iniciarCapturados());
 
     }
@@ -55,71 +64,47 @@ public class PokedexFragment extends Fragment implements ClickListener {
         adapter = new PokedexAdapter(this.pokemons, this); //le metemos la lista
         recycler.setAdapter(adapter);
 
-
-
-
-//        adapter = new PokedexAdapter(this.pokemons, this); //le metemos la lista
-//        recycler.setAdapter(adapter); //la primera vez la lista está vacía pero lo que nos importa
-        //es el objeto al que va a apuntar el adapter. Queremos mantener el mismo objeto
-        //durante todo el ciclo de vida del fragmento
-
-        //The first method where it is safe to access the view lifecycle is onCreateView
-        //Aunque google dice también onCreate pero salta la exception
-//
-//        pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons ->{
-//
-//            this.pokemons = (ArrayList<Pokemon>) pokemons; // si no es la primera vez es que se
-//            spService = new SharedPreferenceService(requireContext());
-//            if(adapter == null){ //el adapter no es destruido en los cambios de configuración pero
-//                //parece ser que que es dettached
-//                spService.leerCapturados(this.pokemons);
-//                adapter = new PokedexAdapter(this.pokemons, this);
-//                recycler.setAdapter(adapter);
-//            }
-//            else{
-//                recycler.setAdapter(adapter); //como es dettached hay que volver a establecerlo
-//                this.pokemons.stream() //escribimos en el SharedPreferences los nuevos capturados
-//                        .filter(p -> p.getState().equals(Pokemon.State.CAPTURED))
-//                        .forEach(p -> spService.escribirCapturado(p.getNombre(),
-//                                Pokemon.State.CAPTURED.name()));
-//            }
-////            adapter.notifyDataSetChanged(); //notificamos los cambios al adapter
-//
-//        });
-//
+        //hacemos que el fragmento tire de la lista de pokemons cada vez que haya cambios
         pokedexViewModel.getPokemons().observe(getViewLifecycleOwner(), pokemons -> {
-            if (spService == null) {
-                spService = new SharedPreferenceService(requireContext());
-            }
-            if (adapter.getItemCount() == 0) { //la primera vez, la lista está vacía
-                System.out.println("pokemodex 0");
 
-                spService.leerCapturados(pokemons); //este método setea el valor state de los pokemons
+            if (adapter.getItemCount() == 0) { //la primera vez, la lista está vacía
+
+                spService.setCaptures(pokemons); //este método setea el valor state de los pokemons
                 //que vienen en Captured, si es que estaban en el sharedpreference. No se crean nuevos
                 // objetos Pokemon, sino que se setean las propiedades de lo que traiga el LiveData
-                // Si creo nuevos objetos cambia la referencia de la lista completa y ya no sería al
-                // que apunta el Adapter por lo que las notificacines de cambio no funcionarían
-                this.pokemons.addAll(pokemons); //añadimos todos y llevamos el service a null para
-                //ayudar al garbage
+                this.pokemons.addAll(pokemons); //añadimos todos
+                adapter.notifyItemRangeChanged(0,this.pokemons.size());
 
             }
             else {
+
                 this.pokemons = (ArrayList<Pokemon>) pokemons; // si no es la primera vez es que se
                 //han producido cambios en la lista, esto es , que hay nuevos Capturados
                 this.pokemons.stream() //escribimos en el SharedPreferences los nuevos capturados
                         .filter(p -> p.getState().equals(Pokemon.State.CAPTURED))
                         .forEach(p -> spService.escribirCapturado(p.getNombre(),
                                 Pokemon.State.CAPTURED.name()));
+                adapter.notifyDataSetChanged(); //notificamos los cambios al adapter
+                //está mal diseñado porque lo ideal es saber que ha cambiado con excatitud para
+                //darle menos trabajo a la app. En la próxima, esto es algo que mejorar
+
             }
-            spService = null;
-            adapter.notifyDataSetChanged(); //notificamos los cambios al adapter
         });
 
-        setCaptureBtnUI(); //Adaptamos al btn de captura para que se ajuste a la pantalla
+        pokedexViewModel.getErrorData().observe(getViewLifecycleOwner(), error->{
+            Snackbar.make(getView(), error.getError(), BaseTransientBottomBar.LENGTH_LONG).show();
+            error.setHandled(true);
+            Log.e("ERROR", getClass().getName(), new Throwable(error.getError()));
+
+        });
+
+        setCaptureBtnUI(); //Adaptamos al btn de captura para que se ajuste a la pantalla. Lo que
+        //hace este método es medir el heigth de la bottom navigation y darle al botón de capturar
+        //ese margen. Así se adapta a cualquier pantalla
 
         Button btn = binding.btnCapture;
-        btn.setOnClickListener(view -> {
-            pokedexViewModel.capture();
+        btn.setOnClickListener(view -> { // El botón de capturar recupera primero los datos de la API
+            pokedexViewModel.capture(); // y luego inserta en FireStore
         });
 
         return binding.getRoot();
@@ -128,8 +113,9 @@ public class PokedexFragment extends Fragment implements ClickListener {
 
     @Override
     public void onDestroy() {
+
         super.onDestroy();
-        Log.d(TAG, ": destruido");
+        spService = null;
     }
 
     /**
@@ -155,8 +141,20 @@ public class PokedexFragment extends Fragment implements ClickListener {
     }
 
     /**
+     * Esto se creó para cuando el dispositivo se pone en forma apaisada que el botón de
+     * capturar se adapte de nuevo a las dimensiones de la pantalla
+     * @param newConfig The new device configuration.
+     */
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setCaptureBtnUI();
+    }
+
+
+    /**
      * Este listener se envía al Adapter cuando es construido para que nos avise de que pokemon ha
-     * sido pulsado
+     * sido pulsado. Sólo son clickables los no capturados
      *
      * @param pokemon
      */
@@ -169,7 +167,6 @@ public class PokedexFragment extends Fragment implements ClickListener {
     private PokedexViewModel pokedexViewModel;
     private ArrayList<Pokemon> pokemons;
     private FragmentPokedexBinding binding;
-    private String TAG = getClass().getName();
     PokedexAdapter adapter;
     RecyclerView recycler;
     SharedPreferenceService spService;

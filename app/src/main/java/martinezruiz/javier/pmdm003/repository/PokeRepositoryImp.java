@@ -21,27 +21,10 @@ public class PokeRepositoryImp implements PokeRepository {
 
     @Override
     public Observable<Pokemon> getPokemon(Pokemon pokemon) {
-             return pokeApiService.getPokemon(pokemon.getNombre()).map(p->{
-
-                 pokemon.setIndice(p.getIndice());
-                 pokemon.setImgUrl(p.getImgUrl());
-                 pokemon.setPeso(p.getPeso());
-                 pokemon.setAltura(p.getAltura());
-                 pokemon.setTypes(p.getTypes());
-                 pokemon.setState(Pokemon.State.CAPTURED);
-                 return pokemon;
-             });
-
+             return pokeApiService.getPokemon(pokemon.getNombre());
     }
-
-    @Override
-    public Observable<Pokemon> getPokemon(String name){
-        return pokeApiService.getPokemon(name);
-    }
-
 
 
     PokeApiService pokeApiService;
-
 
 }

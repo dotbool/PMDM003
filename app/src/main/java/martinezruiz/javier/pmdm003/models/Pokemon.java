@@ -6,6 +6,7 @@ import com.google.firebase.firestore.Exclude;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 
 /**
@@ -107,9 +108,16 @@ public class Pokemon {
     }
     public enum State { FREE, WANTED, CAPTURED }
 
-    @NonNull
     @Override
     public String toString() {
-        return nombre+": "+state + this.hashCode();
+        return "Pokemon{" +
+                "altura=" + altura +
+                ", nombre='" + nombre + '\'' +
+                ", indice=" + indice +
+                ", imgUrl=" + imgUrl.getFrontDefault() +
+                ", peso=" + peso +
+                ", types=" + types.stream().map(type-> type.getType().getName()).collect(Collectors.joining(", ")) +
+                ", state=" + state +
+                '}';
     }
 }

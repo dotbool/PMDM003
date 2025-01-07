@@ -1,15 +1,22 @@
 package martinezruiz.javier.pmdm003.ui.settings;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import martinezruiz.javier.pmdm003.R;
 import martinezruiz.javier.pmdm003.databinding.FragmentSettingsBinding;
 
 //Tu actividad no se cierra por completo cada vez que el usuario sale de la actividad.
@@ -52,9 +59,11 @@ public class SettingsFragment extends Fragment {
     private SettingsViewModel settingsViewModel;
     private FragmentSettingsBinding binding;
 
+    public SettingsFragment() {}
 
-    public static SettingsFragment newInstance() {
-        return new SettingsFragment();
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -68,21 +77,60 @@ public class SettingsFragment extends Fragment {
         //instancia
         settingsViewModel = new ViewModelProvider(requireActivity()).get(SettingsViewModel.class);
         binding = FragmentSettingsBinding.inflate(inflater, container, false);
+        sp = getActivity().getSharedPreferences(getString(R.string.preference_file_settings), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
 
-        binding.btnDeleteSettings.setOnClickListener(view -> {
-            settingsViewModel.setAllowDelete(binding.btnDeleteSettings.isChecked());
+        //leemos en el sp el valor de permitir borrar
+        boolean allow = sp.getBoolean(getString(R.string.delete_preference_key), false);
+        settingsViewModel.setAllowDelete(allow); //establecemos en el modelo ese valor
+        binding.btnDeleteSettings.setChecked(allow); //establecemos en la vista ese valor
+        binding.btnDeleteSettings.setOnClickListener(view -> { //listener en la vista para que cambie
+            //el valor del modelo
+            boolean allow_delete = binding.btnDeleteSettings.isChecked();
+            settingsViewModel.setAllowDelete(allow_delete);
+            editor.putBoolean(getString(R.string.delete_preference_key), allow_delete);
+            editor.apply();
         });
+
+
+        //establecemos el valor de la vista en función del valor del archivo de preferencias o si no
+        //existe este valor, en función del idioma por defecto del sistema
+        setLanguage();
+
+
+        binding.btnRadioLanguage.setOnCheckedChangeListener((group, id) -> {
+            String rbLanguage = id == R.id.btn_rb_spanish ? "es-ES" : "en-US";
+            settingsViewModel.setLanguage(rbLanguage);
+            editor.putString(getString(R.string.language_preference_key), rbLanguage);
+            editor.apply();
+            setApplicationLocale(rbLanguage);
+
+        });
+
         binding.btnLogoutSettings.setOnClickListener(view-> {
-
             settingsViewModel.setLoginState(false);
-
         });
-        settingsViewModel.getAllowDelete().observe(getViewLifecycleOwner(), value-> {
-            System.out.println("estado cambiado");
 
-        });
+
 
         return binding.getRoot();
     }
+
+    private void setLanguage(){
+
+        String defaultLanguage = Resources.getSystem().getConfiguration().getLocales().get(0).toLanguageTag();
+        String language = sp.getString(getString(R.string.language_preference_key), defaultLanguage);
+
+        settingsViewModel.setLanguage(language); //establecemos el valor del language en el modelo
+        int id_rb = language.equals("es-ES") ? R.id.btn_rb_spanish: R.id.btn_rb_english;
+        binding.btnRadioLanguage.check(id_rb); // lo establecemos en la vista
+    }
+
+    private void setApplicationLocale(String locale){
+        LocaleListCompat localeList = LocaleListCompat.forLanguageTags(locale);
+        AppCompatDelegate.setApplicationLocales(localeList);
+    }
+
+    SharedPreferences sp;
 
 }

@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">PMDM003</string>
+    <string name="menu_bottom_pokemons">My pokemons</string>
+    <string name="menu_bottom_pokedex">Pokedex</string>
+    <string name="menu_bottom_settings">Settings</string>
+
+
+    <string name="switch_delete">Allow delete?</string>
+    <string name="delete_preference_key">allow_delete</string>
+    <string name="language_preference_key">language</string>
+    <string name="Settings">Settings</string>
+    <string name="language">Language</string>
+    <string name="logout">Logout</string>
+    <string name="Spanish">Spanish</string>
+    <string name="English">English</string>
+    <string name="acerca_de">About:</string>
+    <string name="sesion_cerrada">: closed session</string>
+    <string name="capturar">Capture</string>
+    <string name="preference_file_capture">captured</string>
+    <string name="preference_file_settings">settings</string>
+    <string name="name_pokemon">Name:</string>
+    <string name="index_pokedex">Pokedex index:</string>
+    <string name="types">Tipes:</string>
+    <string name="height">Height:</string>
+    <string name="weight">Wight:</string>
+</resources>
