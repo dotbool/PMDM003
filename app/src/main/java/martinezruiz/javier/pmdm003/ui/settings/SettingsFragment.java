@@ -116,6 +116,10 @@ public class SettingsFragment extends Fragment {
         return binding.getRoot();
     }
 
+    /**
+     * Este método setea el modelo y vista de la opción Lanaguage. Si hay algo guardado en el sharedPreference
+     * lo recupera y lo establece. Si no hay nada establece en la vista el language del sistema
+     */
     private void setLanguage(){
 
         String defaultLanguage = Resources.getSystem().getConfiguration().getLocales().get(0).toLanguageTag();
@@ -126,6 +130,10 @@ public class SettingsFragment extends Fragment {
         binding.btnRadioLanguage.check(id_rb); // lo establecemos en la vista
     }
 
+    /**
+     * Cuando se cambia el language se llama a este método para que android cambie el language
+     * @param locale
+     */
     private void setApplicationLocale(String locale){
         LocaleListCompat localeList = LocaleListCompat.forLanguageTags(locale);
         AppCompatDelegate.setApplicationLocales(localeList);

@@ -60,9 +60,13 @@ public class SharedPreferenceService {
                 p.setState(Pokemon.State.CAPTURED);
             }
         }
-//        editor.clear().apply();
     }
 
+    /**
+     * Este método se usa para enviar a pokedexViewmodel la lista de pokemons capturados en el
+     * sharedpreferences
+     * @return
+     */
     public ArrayList<String> iniciarCapturados(){
         ArrayList<String> captures = new ArrayList<>();
         sp.getAll().forEach((key, value) -> {

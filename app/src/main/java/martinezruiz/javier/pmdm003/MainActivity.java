@@ -35,12 +35,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("MAIN aCTIVITY ON  CREATE", "MAIN2W2");
 
         Bundle extras = getIntent().getExtras();
         if(extras!=null) {
-            userEmail = extras.getString("email");
-            Log.d("ONCREATE: ", userEmail);
+            userEmail = extras.getString("email"); //La actividad login nos trae el email del user
         }
         PokedexViewModel viewModel = new ViewModelProvider(this).get(PokedexViewModel.class);
         viewModel.setUserEmail(userEmail);
@@ -88,13 +86,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize Firebase Auth
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-
-    }
-
     private void goToLogin(){
         Intent i = new Intent(this, LoginActivity.class);
         startActivity(i);
@@ -102,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
+     * Establece el language en función de las preferencias
      */
     private void setApplicationLocale(){
 

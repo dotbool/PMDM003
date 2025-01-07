@@ -18,6 +18,7 @@ import com.google.android.gms.auth.api.identity.CredentialSavingClient;
 import com.google.android.gms.auth.api.identity.SignInClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import java.util.Arrays;
@@ -72,15 +73,14 @@ public class LoginActivity extends AppCompatActivity {
         if (result.getResultCode() == RESULT_OK) {
             // Successfully signed in
             user = mAuth.getCurrentUser();
-            Log.d("Log ONSIGNINGRESULT", user.toString());
-            Log.d("Log ONSIGNINGRESULT", user.getEmail().toString());
             goToMainActivity(user.getEmail());
         } else {
 
-            Log.d("Log ON ELSE", user.toString());
 
-//            Snackbar snackLogin = Snackbar.make(this.findViewById(result.getResultCode()), "nono", 3000);
-//            snackLogin.show();
+            Snackbar snackLogin = Snackbar.make(this.findViewById(result.getResultCode()),
+                    "Error en el logado",
+                    3000);
+            snackLogin.show();
         }
     }
 
@@ -98,6 +98,10 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Vamos al main activity con el email del user logado
+     * @param email
+     */
     private void goToMainActivity(String email) {
 
         Intent i = new Intent(this, MainActivity.class);
@@ -106,15 +110,6 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-
-    private void logout() {
-        AuthUI.getInstance()
-                .signOut(this)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    public void onComplete(@NonNull Task<Void> task) {
-                    }
-                });
-    }
 
     private FirebaseAuth mAuth;
     private FirebaseUser user;
