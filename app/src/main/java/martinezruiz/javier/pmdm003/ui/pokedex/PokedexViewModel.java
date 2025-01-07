@@ -139,7 +139,7 @@ public class PokedexViewModel extends ViewModel {
 
         if (!pokemonList.isInitialized()) { //se llama al iniciar el fragmento por vez primera
             ArrayList<Pokemon> list = new ArrayList<>();
-            disposableCapturados = repo.getPokemonList(0, 15)
+            disposableCapturados = repo.getPokemonList(0, 150)
                     .flatMap(pokemonList -> Observable.fromIterable(pokemonList.getPokemonList()))
                     .concatMap(p -> {
                         if (capturadosSp.contains(p.getNombre())) {

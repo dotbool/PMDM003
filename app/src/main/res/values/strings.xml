@@ -23,4 +23,5 @@
     <string name="types">Tipos:</string>
     <string name="height">Altura:</string>
     <string name="weight">Peso:</string>
+    <string name="aplicacion_desarrollada_por">Aplicación desarrollada por Javier Martínez</string>
 </resources>
