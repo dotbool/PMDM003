@@ -6,7 +6,7 @@ El  propósito de la aplicación es mostrar una colección de pokemons para que 
 El modo de funcionamiento dista un poco del objetivo inicial propuesto en la tarea. En ésta se indica que tras un click debe generarse una captura. En esta app, pueden seleccionarse varios pokemons que no serán capturados
 hasta que se pulse un botón. 
 La app trabaja sólo con una lista de pokemons y lo que se muestra en cada vista depende del atributo state de cada objeto pokemon. Así en la vista pokedex se muestran todos los pokemons y el color del objeto que soporta el 
-dato depende del state del polemon. En la vista pokemon  y en details sólo se muestran aquellos cuyo state es CAPTURED.
+dato depende del state del pokemon. En la vista pokemon  y en details sólo se muestran aquellos cuyo state es CAPTURED.
 
 ## Características principales
 
